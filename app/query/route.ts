@@ -1,26 +1,29 @@
-// import postgres from 'postgres';
+import postgres from 'postgres';
 
-// const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
-
-// async function listInvoices() {
-// 	const data = await sql`
-//     SELECT invoices.amount, customers.name
-//     FROM invoices
-//     JOIN customers ON invoices.customer_id = customers.id
-//     WHERE invoices.amount = 666;
-//   `;
-
-// 	return data;
-// }
-
-export async function GET() {
-  return Response.json({
-    message:
-      'Uncomment this file and remove this line. You can delete this file when you are finished.',
-  });
-  // try {
-  // 	return Response.json(await listInvoices());
-  // } catch (error) {
-  // 	return Response.json({ error }, { status: 500 });
-  // }
+const POSTGRES_URL = process.env.POSTGRES_URL;
+if(!POSTGRES_URL) {
+    throw new Error("Missing POSTGRES_URL in .env");
 }
+
+const sql = postgres(POSTGRES_URL,{ssl : 'require'})
+
+async function listCustomers(){
+const data = await sql `select name from customers where email = 'amy@burns.com' `
+return data;
+}
+
+
+
+export async function GET(){
+try{
+    const data = await listCustomers();
+    if(!data){
+        return Response.json({error : "Client not found"}, {status : 404 })
+    }
+    return Response.json(data)
+}catch(error){
+return Response.json ({error: "Server error"}, {status : 500})
+}
+}
+
+
